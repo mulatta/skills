@@ -29,6 +29,7 @@ skills/poteto-mode/playbooks/shipping.md	Cursor's cloud agents are not here, and
 skills/poteto-mode/playbooks/worktree-cleanup.md	Worktrees here sit in four places upstream does not know
 skills/poteto-mode/scripts/	The same four places, and worktrees with no branch checked out
 skills/poteto-mode/worker.md	A started agent here commits and reports. It does not open PRs. Upstream gives the delegate the mode through `poteto-agent` alone; here `worker.md` does, so a delegate started on a harness with no agent types gets it too
+skills/principle-laziness-protocol/SKILL.md	"Fewer lines" was read as licence to compress the code that stays; the added rule limits deletion to unneeded behaviour
 skills/recall/SKILL.md	Upstream reads Cursor's transcripts. The session index here skips records, so it cannot prove an absence
 skills/reflect/SKILL.md	The common state in this user's sessions was a loaded file with no clause, which more prose in a skill does not fix
 skills/setup-pstack/SKILL.md	Upstream writes a Cursor rule, and its Claude Code mapping turns another vendor's seat into the session model, which leaves a panel with one vendor. No older rule exists here to migrate
