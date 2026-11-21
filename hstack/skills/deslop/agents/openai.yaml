@@ -1,0 +1,6 @@
+interface:
+  display_name: "Deslop"
+  short_description: "Remove AI-generated code slop from a diff"
+  default_prompt: "Run $deslop over this diff."
+policy:
+  allow_implicit_invocation: false

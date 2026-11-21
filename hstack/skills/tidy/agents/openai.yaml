@@ -1,0 +1,4 @@
+interface:
+  display_name: "Tidy"
+  short_description: "Reshape history, keeping the final tree"
+  default_prompt: "Use $tidy to reshape this branch into reviewable commits."

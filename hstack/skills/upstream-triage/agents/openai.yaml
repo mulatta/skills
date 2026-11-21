@@ -1,0 +1,4 @@
+interface:
+  display_name: "Upstream Triage"
+  short_description: "Check upstream before patching a dependency"
+  default_prompt: "Use $upstream-triage on this dependency failure before patching it."
