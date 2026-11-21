@@ -18,7 +18,14 @@ Name the state the instruction was in when the correction came:
 - **Rule not loaded.** A skill states it and the session never opened that skill. Fix the description or the link that should have led there.
 - **Rule loaded and not followed.** Send it to the backlog as a check.
 
-A correction counts at two independent sessions. Check `candidates.md` beside this file, then ask [recall](../recall/SKILL.md) for the earlier session and cite it. With none, add the finding to `candidates.md` with the date and this session's id, and do not propose it. Remove a candidate when it is promoted.
+A correction counts at two independent sessions. Check `candidates.md` beside this file, then ask [recall](../recall/SKILL.md) for the earlier session and cite it. With none, add the finding to `candidates.md`, creating the file if it is missing, and do not propose it. Remove a candidate when it is promoted. Git ignores the file, since it holds session ids and host names.
+
+Each candidate is a `##` heading that names the correction, followed by four fields in this order:
+
+- `date`: the day it was seen, as YYYY-MM-DD
+- `session`: the session id, or "not recorded"
+- `seen`: what was corrected, and what the agent had done
+- `route`: the file and section the edit would go to
 
 A proposal that replaces a rule deletes the old rule in the same finding.
 

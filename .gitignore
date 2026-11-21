@@ -11,3 +11,6 @@ __pycache__/
 
 # nix
 result
+
+# reflect: holds session ids and host names
+hstack/skills/reflect/candidates.md
