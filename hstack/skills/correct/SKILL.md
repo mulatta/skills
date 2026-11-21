@@ -12,14 +12,20 @@ Assume every contributor is an agent that sees only the files it opened, copies 
 
 ## Find the mistake classes
 
-First, read recent commits, reverts, review comments, agent instruction files, and comments that explain workarounds. Group the mistakes into classes. A class counts once it has happened twice.
+First, read recent commits, reverts, review comments, agent instruction files, and comments that explain workarounds. Then read what the operator typed in this repository's sessions: list the turns with `../recall/scripts/user_turns.ts` from the [recall](../recall/SKILL.md) skill and open each candidate at its line. A turn is a correction when the operator says the agent did the wrong thing or stops it.
+
+Group the mistakes into classes. A class counts once it has happened twice, in independent sessions. A resumed or forked session is the same session.
+
+Set each class beside the rule that should have prevented it, read from the instruction files as they stood that day, and name the rule's state as [reflect](../reflect/SKILL.md) defines the three. Where a rule was added after a correction, check whether the mistake came back. Note instruction files or agent memories that state opposite rules.
+
+Split a large corpus by harness or by date and ask each slice the same questions. Report how many sessions the search returned and how many you opened.
 
 ## Fix each class at the highest level that works
 
 1. **Eliminate it with architecture.** Give each piece of state one owner and each task one supported way. Hide internals so the wrong import fails. Replace hand-synced lists with one source of truth. Delete old ways and dead code an agent would copy.
 2. **Enforce it with types so the bad state can't be written.** If bad code still compiles, add a lint or CI check whose error names the file, type, or function to use instead. If the pattern is already common, fail only when a change adds more.
 3. **Test the behavior.** Fix or delete any test that still passes when the behavior it checks breaks, or that fails when only the internals change.
-4. **Write docs or agent rules last, only for judgment calls.** Nothing fails when an agent skips them.
+4. **Write docs or agent rules last, only for judgment calls.** Nothing fails when an agent skips them. A rule goes in the narrowest file that every affected session loads.
 
 ## Fix and prove
 
