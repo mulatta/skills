@@ -1,0 +1,38 @@
+agents/comment-sicko.md	The user writes those languages, and their instructions limit a comment to one line
+agents/poteto-agent.md	A delegate runs on the parent model unless a role line says otherwise, and the operator's rules for a delegate live in `worker.md` alone, which sends it on to the mode
+skills/arena/SKILL.md	Model names are the user's, in `rules/models.md`. Upstream swaps a foreign seat for the session model, which leaves a panel with one vendor
+skills/automate-me/SKILL.md	Upstream drafts a new personal mode. Here the mode exists, so a run updates it
+skills/correct/SKILL.md	The user corrects agents in chat across three harnesses, and those corrections seldom reach a repository
+skills/create-verification-skill/SKILL.md	Upstream names Cursor's project folder, which no harness here reads
+skills/figure-it-out/SKILL.md	The mode's name here. The harnesses in use have no todolist tool
+skills/how/SKILL.md	How to start a subagent is said once, in the mode's Subagents section
+skills/interrogate/SKILL.md	Same
+skills/maintain-verification-skill/SKILL.md	Same
+skills/no-comments/SKILL.md	How to start a subagent is said once, in the mode's Subagents section
+skills/poteto-help/	Upstream's help explains a Cursor plugin and the skill that configures it. The bundle here is hstack, and it is installed and started another way
+skills/poteto-mode/SKILL.md	This user's rules, on harnesses other than Cursor
+skills/poteto-mode/playbooks/authoring-a-skill.md	Upstream's four steps hand the work to Cursor's `create-skill` and end in a PR
+skills/poteto-mode/playbooks/autonomous-run.md	Upstream names Cursor's `/loop`
+skills/poteto-mode/playbooks/autopilot-full.md	Gitea stands in for Cursor's Origin. Owners run in managed terminals in place of Cursor cloud agents, keep their trail where the root says, and stop at merge-ready in a repository the user does not own. A live lane names its driver, since no control skill is installed
+skills/poteto-mode/playbooks/babysit.md	A thread reply is the user's call. Gitea stands in for Cursor's Origin, and nixbot's log explains a failed check. Bugbot is not used here, so its triage reference is gone and review comments in general take its place. Upstream never merges from a babysit; here a merge-ready PR in the user's own repository goes on to Shipping, and one in any other repository stops there
+skills/poteto-mode/playbooks/bug-fix.md	Those are Cursor's. The user's instructions require the failing test first, and the user opens PRs
+skills/poteto-mode/playbooks/eval.md	Each came from an eval round here that failed for that reason
+skills/poteto-mode/playbooks/feature.md	Models come from the role lines. The user opens PRs themselves
+skills/poteto-mode/playbooks/hillclimb.md	Same
+skills/poteto-mode/playbooks/opening-a-pr.md	The repository's subject convention and PR template set the title and body, and the PR opens from the terminal in every repository, since a headless machine has no browser
+skills/poteto-mode/playbooks/perf-issue.md	Models come from the role lines. The user opens PRs themselves. No control skill is installed, so the baseline names no tool
+skills/poteto-mode/playbooks/prototype.md	No control skill is installed, so a visual variant is screenshotted without naming one
+skills/poteto-mode/playbooks/refactoring.md	Models come from the role lines. The user opens PRs themselves. No control skill is installed, so the smoke run names no tool
+skills/poteto-mode/playbooks/runtime-forensics.md	No control skill is installed, so capturing the live signal names no tool
+skills/poteto-mode/playbooks/session-pickup.md	Upstream names Cursor's `agent-transcripts/`
+skills/poteto-mode/playbooks/shipping.md	Cursor's cloud agents are not here, and Gitea stands in for Origin. Merge rights do not tell the user's repository from a shared one: the user holds them in both, so the agent merges only in a repository the user owns and never in any other
+skills/poteto-mode/playbooks/worktree-cleanup.md	Worktrees here sit in four places upstream does not know
+skills/poteto-mode/scripts/	The same four places, and worktrees with no branch checked out
+skills/poteto-mode/worker.md	A started agent here commits and reports. It does not open PRs. Upstream gives the delegate the mode through `poteto-agent` alone; here `worker.md` does, so a delegate started on a harness with no agent types gets it too
+skills/recall/SKILL.md	Upstream reads Cursor's transcripts. The session index here skips records, so it cannot prove an absence
+skills/reflect/SKILL.md	The common state in this user's sessions was a loaded file with no clause, which more prose in a skill does not fix
+skills/setup-pstack/SKILL.md	Upstream writes a Cursor rule, and its Claude Code mapping turns another vendor's seat into the session model, which leaves a panel with one vendor. No older rule exists here to migrate
+skills/show-me-your-work/SKILL.md	Upstream names Cursor's `agent-transcripts/`
+skills/swarm/SKILL.md	The line names a cheap model, not a vendor, so a terminal on another harness would defeat it
+skills/tdd/SKILL.md	The user's instructions require it for a bug fix
+skills/unslop/SKILL.md	The user's chat replies are in Korean, where an English word list or phrase catches nothing

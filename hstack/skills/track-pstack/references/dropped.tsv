@@ -1,0 +1,7 @@
+skills/make-bot-ui/	Builds a page whose buttons wake a bot over a webhook. Out because the webhook is a Cursor Automations routine, which has no counterpart here
+skills/ketchup-video/	The catch-up of ketchup as a short subtitled video. Out because no renderer is installed and no session asked for one
+skills/statechart/	Checks a TLA+ model of a flow and draws it as a Mermaid statechart, with the shortest path to each state that breaks a rule. Out because TLC and Java are not installed, and another tool may take its place
+skills/create-formal-verification-skill/	Generates a project skill that proves a property with a model checker, a proof, or another verifier. Out with statechart, which reads its TLA+ results
+skills/maintain-formal-verification-skill/	Brings a generated formal verification back in line after the code it covers changed. Out with the skill that generates one
+skills/poteto-mode/references/bugbot-triage.md	How to sort the comments of Bugbot, Cursor's review bot, with patterns learned on Cursor's code. Out because no repository here has a review bot: the reviews on the user's pull requests come from people
+skills/poteto-mode/playbooks/visual-parity.md	Checks each UI component against a baseline image until the pixel diff is zero. Out because it needs a control skill to drive the UI, and the work here seldom has a UI

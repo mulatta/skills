@@ -1,0 +1,6 @@
+interface:
+  display_name: "Track Pstack"
+  short_description: "Bring upstream pstack's changes into this tree"
+  default_prompt: "Use $track-pstack to bring in what pstack changed upstream."
+policy:
+  allow_implicit_invocation: false
