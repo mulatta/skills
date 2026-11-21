@@ -1,0 +1,15 @@
+{
+  "compilerOptions": {
+    "allowImportingTsExtensions": true,
+    "module": "esnext",
+    "moduleResolution": "bundler",
+    "noEmit": true,
+    "skipLibCheck": true,
+    "strict": true,
+    "noUncheckedIndexedAccess": true,
+    "target": "esnext",
+    "types": ["bun"]
+  },
+  "include": ["hstack/**/*.ts"],
+  "exclude": ["**/node_modules", "hstack/skills/mulatta-mode/scripts/watch-pr"]
+}
