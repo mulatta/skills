@@ -1,0 +1,5 @@
+interface:
+  display_name: "Redesign from First Principles"
+  short_description: "Design as if the new rule had been there"
+policy:
+  allow_implicit_invocation: false

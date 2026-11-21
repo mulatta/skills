@@ -1,0 +1,6 @@
+interface:
+  display_name: "Automate Me"
+  short_description: "Turn the user's habits into mode rules"
+  default_prompt: "Use $automate-me to fold what I corrected today into my mode."
+policy:
+  allow_implicit_invocation: false

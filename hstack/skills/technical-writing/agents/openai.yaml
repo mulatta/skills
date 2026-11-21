@@ -1,0 +1,5 @@
+interface:
+  display_name: "Technical Writing"
+  short_description: "Standard for docs, PR text and commit bodies"
+policy:
+  allow_implicit_invocation: false

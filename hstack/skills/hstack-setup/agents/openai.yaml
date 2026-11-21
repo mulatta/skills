@@ -1,0 +1,5 @@
+interface:
+  display_name: "Hstack Setup"
+  short_description: "Pick a model and effort per role, and a reasoning budget"
+policy:
+  allow_implicit_invocation: false

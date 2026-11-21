@@ -1,0 +1,5 @@
+interface:
+  display_name: "Mulatta Help"
+  short_description: "How the hstack skills fit together and which one fits a task"
+policy:
+  allow_implicit_invocation: false

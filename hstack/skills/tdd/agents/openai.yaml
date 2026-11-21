@@ -1,0 +1,5 @@
+interface:
+  display_name: "TDD"
+  short_description: "Make the bug executable before fixing it"
+policy:
+  allow_implicit_invocation: false

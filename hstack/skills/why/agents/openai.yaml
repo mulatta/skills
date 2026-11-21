@@ -1,0 +1,6 @@
+interface:
+  display_name: "Why"
+  short_description: "Answer why from the commit and PR record"
+  default_prompt: "Use $why to find why this code is the way it is."
+policy:
+  allow_implicit_invocation: false

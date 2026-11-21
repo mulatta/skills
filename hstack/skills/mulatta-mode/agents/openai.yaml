@@ -1,0 +1,6 @@
+interface:
+  display_name: "Mulatta Mode"
+  short_description: "How mulatta works, with every playbook"
+  default_prompt: "Work in $mulatta-mode for this task."
+policy:
+  allow_implicit_invocation: false

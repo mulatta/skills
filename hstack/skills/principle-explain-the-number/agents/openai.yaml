@@ -1,0 +1,5 @@
+interface:
+  display_name: "Explain the Number"
+  short_description: "Find the limiter before trusting a number"
+policy:
+  allow_implicit_invocation: false

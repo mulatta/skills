@@ -1,0 +1,5 @@
+interface:
+  display_name: "Exhaust the Design Space"
+  short_description: "Prototype the alternatives before choosing"
+policy:
+  allow_implicit_invocation: false

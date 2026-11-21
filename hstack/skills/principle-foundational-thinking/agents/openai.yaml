@@ -1,0 +1,5 @@
+interface:
+  display_name: "Foundational Thinking"
+  short_description: "Pick the data shape before the logic"
+policy:
+  allow_implicit_invocation: false

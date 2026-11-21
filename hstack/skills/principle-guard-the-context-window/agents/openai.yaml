@@ -1,0 +1,5 @@
+interface:
+  display_name: "Guard the Context Window"
+  short_description: "Route bulk to subagents, keep summaries"
+policy:
+  allow_implicit_invocation: false

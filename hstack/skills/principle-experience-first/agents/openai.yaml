@@ -1,0 +1,5 @@
+interface:
+  display_name: "Experience First"
+  short_description: "Choose the user's delight over convenience"
+policy:
+  allow_implicit_invocation: false

@@ -1,0 +1,6 @@
+interface:
+  display_name: "Swarm"
+  short_description: "Fan out parallel workers, return one report"
+  default_prompt: "Use $swarm to fan this out across the files."
+policy:
+  allow_implicit_invocation: false

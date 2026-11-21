@@ -1,0 +1,5 @@
+interface:
+  display_name: "Prove It Works"
+  short_description: "Check the real artifact before done"
+policy:
+  allow_implicit_invocation: false

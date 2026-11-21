@@ -1,0 +1,6 @@
+interface:
+  display_name: "Reflect"
+  short_description: "Route this session's lessons into skill edits"
+  default_prompt: "Run $reflect over this session and show me what should change."
+policy:
+  allow_implicit_invocation: false

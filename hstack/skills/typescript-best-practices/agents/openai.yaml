@@ -1,0 +1,5 @@
+interface:
+  display_name: "TypeScript Best Practices"
+  short_description: "TypeScript rules for reading or editing .ts files"
+policy:
+  allow_implicit_invocation: false

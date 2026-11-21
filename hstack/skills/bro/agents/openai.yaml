@@ -1,0 +1,6 @@
+interface:
+  display_name: "Bro"
+  short_description: "Say the last message in plain words"
+  default_prompt: "Use $bro to say that last part in plain words."
+policy:
+  allow_implicit_invocation: false

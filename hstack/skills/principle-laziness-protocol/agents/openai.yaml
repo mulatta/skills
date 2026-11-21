@@ -1,0 +1,5 @@
+interface:
+  display_name: "Laziness Protocol"
+  short_description: "Bias to deletion and the smallest change"
+policy:
+  allow_implicit_invocation: false

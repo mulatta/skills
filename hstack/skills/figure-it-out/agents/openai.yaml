@@ -1,0 +1,5 @@
+interface:
+  display_name: "Figure It Out"
+  short_description: "Plan work that no other playbook fits"
+policy:
+  allow_implicit_invocation: false

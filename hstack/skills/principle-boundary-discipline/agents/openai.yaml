@@ -1,0 +1,5 @@
+interface:
+  display_name: "Boundary Discipline"
+  short_description: "Guard at the boundary, trust inside it"
+policy:
+  allow_implicit_invocation: false

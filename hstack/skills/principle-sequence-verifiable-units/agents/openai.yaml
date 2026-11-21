@@ -1,0 +1,5 @@
+interface:
+  display_name: "Sequence Verifiable Units"
+  short_description: "Each unit ends in its own check"
+policy:
+  allow_implicit_invocation: false
