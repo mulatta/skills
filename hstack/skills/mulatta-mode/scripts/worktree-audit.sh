@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Read-only worktree prune audit. Classifies every git worktree by size, merge
-# state, uncommitted work, remote/PR state, and the most recent chat that
-# operated in it. Emits a table sorted by size with a suggested bucket. Never
+# state, uncommitted work, remote/PR state, whether an agent terminal is live
+# in it, and the most recent session that operated in it. Emits a table sorted by size with a suggested bucket. Never
 # deletes anything; deletion stays a human-gated step in the playbook.
 #
 # Usage: worktree-audit.sh [-b|--base <ref>] [repo-path]
@@ -56,26 +56,31 @@ else
 fi
 
 # PR state by branch, fetched once as [{number, state, head}] with a lowercase
-# state. Origin when its CLI can read this repo's PRs, otherwise gh. Empty when
-# neither can.
+# state. Empty when gh cannot read this repo's PRs.
 prs=$(mktemp)
-if command -v origin >/dev/null 2>&1 \
-	&& raw=$(origin pr list --author "@me" --state all --limit 1000 \
-		--json number,status,headRef 2>/dev/null); then
-	printf '%s' "$raw" | jq '[.[] | {number, state: .status, head: .headRef}]' > "$prs" 2>/dev/null
-elif raw=$(gh pr list --author "@me" --state all --limit 1000 \
+if raw=$(gh pr list --author "@me" --state all --limit 1000 \
 	--json number,state,headRefName 2>/dev/null); then
 	printf '%s' "$raw" | jq '[.[] | {number, state: (.state | ascii_downcase), head: .headRefName}]' > "$prs" 2>/dev/null
 fi
 [ -s "$prs" ] || echo "[]" > "$prs"
 
-# Transcripts dir: ~/.cursor/projects/<slugified-repo-path>/agent-transcripts.
-slug=$(printf '%s' "$main_wt" | sed 's#^/##; s#/#-#g')
-transcripts="$HOME/.cursor/projects/$slug/agent-transcripts"
+# Transcripts of every harness on this machine (see the recall skill). Only
+# files written in the last week are searched: the LAST_SESSION column exists
+# to find a worktree still in use, and an older touch does not change a call.
+sessions=$(mktemp)
+find "$HOME/.claude/projects" "$HOME/.codex/sessions" "$HOME/.pi/agent/sessions" \
+	-name '*.jsonl' -mtime -7 -print 2>/dev/null > "$sessions"
+
+# Worktrees that an agent terminal is sitting in right now. A live terminal is
+# stronger evidence of use than any transcript, and it is why this runs before
+# the table rather than being asked about per row.
+live=$(mktemp)
+hc ls 2>/dev/null | jq -r '.terminals[]? | select(.state == "live") | .cwd // empty' > "$live" 2>/dev/null || true
+
 now=$(date +%s)
 
 echo "# base: $base"
-printf "SIZE\tAGE\tMERGED\tDIRTY\tREMOTE\tPR\tLAST_CHAT\tBUCKET\tWORKTREE\n"
+printf "SIZE\tAGE\tMERGED\tDIRTY\tREMOTE\tPR\tLIVE\tLAST_SESSION\tBUCKET\tWORKTREE\n"
 
 git worktree list --porcelain | awk '/^worktree /{print $2}' | while read -r wt; do
 	[ "$wt" = "$main_wt" ] && continue
@@ -96,7 +101,9 @@ git worktree list --porcelain | awk '/^worktree /{print $2}' | while read -r wt;
 		dirty="wip:$(printf '%s\n' "$porcelain" | grep -cv '^??')"
 	else dirty="scratch:$(printf '%s\n' "$porcelain" | grep -c '^??')"; fi
 
+	# Most worktrees on this machine are on a detached HEAD, so take a branch that points at the commit.
 	branch=$(git -C "$wt" symbolic-ref --quiet --short HEAD 2>/dev/null || echo "")
+	[ -z "$branch" ] && branch=$(git -C "$wt" branch --points-at HEAD --format='%(refname:short)' 2>/dev/null | head -1)
 	if [ -z "$branch" ]; then remote=detached
 	elif git -C "$wt" show-ref --verify --quiet "refs/remotes/origin/$branch"; then
 		[ "$(git -C "$wt" rev-parse "origin/$branch" 2>/dev/null)" = "$head" ] \
@@ -108,27 +115,38 @@ git worktree list --porcelain | awk '/^worktree /{print $2}' | while read -r wt;
 		'.[] | select(.head==$b) | "#\(.number)/\(.state)"' "$prs" 2>/dev/null | head -1)
 	[ -z "$pr" ] && pr="-"
 
-	# Most recent chat whose transcript operated in this worktree. Match path
-	# followed by "/" or a quote so glint-482 does not match glint-482-r37.
+	# An agent terminal whose cwd is this worktree or below it.
+	if grep -q -e "^${wt}$" -e "^${wt}/" "$live" 2>/dev/null; then in_use=yes; else in_use=no; fi
+
+	# Most recent session that ran in this worktree, by a cwd field naming it.
+	# A plain mention is reported with a leading "~" and does not count as use:
+	# an audit or a report that printed the path marks every worktree it lists.
 	last="-"; last_ts=0
-	if [ -d "$transcripts" ]; then
-		f=$(rg -l -e "${wt}/" -e "${wt}\"" "$transcripts" 2>/dev/null \
+	if [ -s "$sessions" ]; then
+		f=$(xargs -r rg -l -e "\"cwd\": *\"${wt}" -e "cwd=${wt}" < "$sessions" 2>/dev/null \
 			| xargs stat "${stat_fmt[@]}" 2>/dev/null | sort -rn | head -1)
 		if [ -n "$f" ]; then last_ts=$(echo "$f" | awk '{print $1}')
-			last=$(fmt_day "$last_ts" 2>/dev/null); fi
+			last=$(fmt_day "$last_ts" 2>/dev/null)
+		else
+			f=$(xargs -r rg -l -e "${wt}/" -e "${wt}\"" < "$sessions" 2>/dev/null \
+				| xargs stat "${stat_fmt[@]}" 2>/dev/null | sort -rn | head -1)
+			[ -n "$f" ] && last="~$(fmt_day "$(echo "$f" | awk '{print $1}')" 2>/dev/null)"
+		fi
 	fi
 	recent=$([ "$last_ts" -gt 0 ] 2>/dev/null && [ $(( (now - last_ts) / 86400 )) -le 4 ] && echo yes || echo no)
 
+	case "$in_use" in yes) bucket=hold-in-use ;; *)
 	case "$dirty" in wip:*) bucket=hold-wip ;; *)
 		case "$pr" in */open|*/draft) bucket=hold-open-pr ;; *)
-			if [ "$recent" = yes ]; then bucket=verify-recent-chat
+			if [ "$recent" = yes ]; then bucket=verify-recent-session
 			elif [ "$merged" = YES ] || [ "$pr" != "-" ]; then bucket=safe
 			else bucket=review; fi ;;
 		esac ;;
+	esac ;;
 	esac
 
-	printf "%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\n" \
-		"$size" "$age" "$merged" "$dirty" "$remote" "$pr" "$last" "$bucket" "$wt"
+	printf "%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\n" \
+		"$size" "$age" "$merged" "$dirty" "$remote" "$pr" "$in_use" "$last" "$bucket" "$wt"
 done | sort -t$'\t' -k1,1 -rh
 
-rm -f "$prs"
+rm -f "$prs" "$sessions" "$live"
