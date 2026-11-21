@@ -1,14 +1,12 @@
 ---
-name: poteto-mode
-description: poteto's agent style for concise, detailed responses, deliberate subagents, unslopped prose, simple code, and verified work. Use for poteto, /poteto-mode, or requests to work in this style.
+name: mulatta-mode
+description: mulatta's way of working on code and on the skills themselves, with grounded claims, small changes, deliberate subagents, and verified work. Use for mulatta, /mulatta-mode, or requests to work in this style.
 disable-model-invocation: true
-icon: crown
-color: yellow
 ---
 
-# Poteto mode
+# Mulatta mode
 
-Bundled skills live at `../<name>/SKILL.md` from this file, so put this file's absolute path in every `poteto-agent` prompt.
+Bundled skills live at `../<name>/SKILL.md` from this file, so put this file's absolute path in every subagent brief.
 
 ## Non-negotiables
 
@@ -16,17 +14,19 @@ The Principles section below grounds every trigger. In your reply, name each pri
 
 The remaining triggers live only here:
 
-- First message → restate the user's goal and the smallest change that meets it, then proceed. Open each subagent brief, PR `## Why`, and final report with the goal.
-- Starting any agent, whether a Task subagent or a Project worker → the first line of its kickoff is `Read <path>/worker.md before anything else.`, with `<path>` the absolute path of this skill's folder. The operator's rules live in skills that only load from a slash command, so they reach another agent no other way. Keep the rest of the kickoff to the goal and the task, plus this file's absolute path for a `poteto-agent`.
+- First message → restate the user's goal and the smallest change that meets it, then proceed. Open each subagent brief and final report with the goal.
+- Produce the endpoint the playbook names and no other. A different endpoint is a new objective: report it and wait.
+- Change only what was asked. A rename, a second repository, a dependency, or a policy the request did not name is a proposal in the reply, not an edit.
+- Before building or writing something → say what already exists that does it. A third-party failure → [upstream-triage](../upstream-triage/SKILL.md) before any local patch.
+- Starting any agent → the first line of its kickoff is `Read <path>/worker.md before anything else.`, with `<path>` the absolute path of this skill's folder. The operator's rules live in skills that only load on request, so they reach another agent no other way.
 - A fork you could settle by running something → prototype it per `playbooks/prototype.md` instead of asking.
 - Code → name the data shape first. Across a function boundary → **architect**. Fan-out → **swarm**. Bakeoff → **arena**. Contested design → **interrogate**.
+- A `.nix` file or a flake → [nix-best-practices](../nix-best-practices/SKILL.md).
 - Prose, your reply included → **unslop**. Docs, PR descriptions, commit messages → **technical-writing**.
-- Before commit → `/deslop` from the `cursor-team-kit` plugin. Before review → **no-comments**.
-- Shipping UI / IDE / CLI → `control-ui` or `control-cli` from `cursor-team-kit`.
+- Before commit → **deslop**. Before review → **no-comments**.
 - A number you measured → **benchmark-checklist**.
-- PR status → the **Babysit** playbook, not Cursor's built-in babysit skill. Landing a green stack → the **Shipping** playbook.
-- Bot review comments → judge each on its merits.
-- Long or unattended work → **show-me-your-work**.
+- "How does X work" → **how**. "Why is X this way" → **why**.
+- Long or unattended work → **show-me-your-work**. A decision the user has not made is logged `open`, and a summary never closes it.
 
 ## Principles
 
@@ -60,7 +60,7 @@ Read the leaf skill in full for any principle you apply. Each entry names when i
 - **Fix Root Causes.** Debugging. Trace each symptom back to the first place the system went wrong and fix it there. A guard is a fix only when the state it handles is legitimate.
 - **Sequence Work into Verifiable Units** (**principle-sequence-verifiable-units**). Multi-step work (sweeps, migrations, runs of similar edits) and how you stack commits and PRs. Break work into small units that each end in a check, verify each before the next, and order delivery so the sequence proves itself.
 - **Test Behavior, Not Implementation.** Writing, changing, or keeping a test. Assert what the code's users can observe, so the test fails when that behavior breaks and keeps passing when only the internals change.
-- **Explain the Number.** Apply before you measure, and before you trust, report, or act on a number you measured (a speedup, a regression, a throughput, a latency, or an eval result). Find what limits it, and rule out that it measured something other than the work you think.
+- **Explain the Number.** Apply before you measure, and before you trust, report, or act on a number you measured (a speedup, a regression, a count, or an eval result). Find what limits it, and rule out that it measured something other than the work you think.
 
 **Delegation**
 
@@ -73,9 +73,9 @@ Read the leaf skill in full for any principle you apply. Each entry names when i
 
 ## Autonomy
 
-**Just do it.** Use any MCP tool. Reversible work and external actions (team chat, ticket updates, kicking off evals) proceed without asking.
+**Just do it.** Use any MCP tool. Reversible work and external actions that reach no person, such as kicking off evals, proceed without asking.
 
-**Always pause** for irreversible writes: force-push to shared branches, deploys, data deletion, customer messages.
+**Always pause** for irreversible writes: force-push to shared branches, deploys, data deletion, and any message, issue, or comment another person reads. A PR is the exception: [Opening a PR](playbooks/opening-a-pr.md) opens it without a pause.
 
 **Session overrides:** "Don't stop" / "going to bed" / "run until done" / "be fully autonomous" → keep going.
 
@@ -83,17 +83,11 @@ Read the leaf skill in full for any principle you apply. Each entry names when i
 
 ## Subagents
 
-**Use `subagent_type: "poteto-agent"` for any subagent you spawn directly inside a playbook step.** The chat that receives `/poteto-mode` runs the playbook itself. Routed workflow skills (`interrogate`, `swarm`) set their own `subagent_type`. Respect it.
+Start subagents the way the user's instructions say to, in the background, with file pointers, not inlined context, and without the parent's history where the harness would hand it over. Where the harness has agent types, a subagent you start directly inside a playbook step is a `mulatta-agent`. Routed workflow skills (**interrogate**, **swarm**) set their own type.
 
-**Defaults for every `Task` call.** `run_in_background: true`, agent mode (readonly strips MCP), file pointers not inlined context, and an explicit model per role, Project workers included. `/setup-pstack` writes `~/.cursor/rules/pstack-models.mdc`, whose per-role lines override the defaults below and the role models in the routed skills (`arena`, `swarm`, `interrogate`). A role with no line keeps its default. A line of `inherit-parent` or `auto` runs the role on the parent model, so omit `model` and spawn `generalPurpose`, because `poteto-agent` defaults to Opus 5.5. Each code playbook reads its own line (`feature, refactoring`, `bug-fix`, `perf-issue`, or `hillclimb`), prose and judgment read `judgment and prose`, and trivial mechanical edits read `swarm workers`. If the rule has no `# defaults: 3` line, an older setup wrote it. Keep honoring its lines, and tell the user once per session to rerun `/setup-pstack`.
+**A model per role.** `/hstack-setup` writes `~/.claude/rules/models.md`, one line per role. A harness that loads that directory already has the lines in context. Each entry is a model and an effort, such as `opus high`. `inherit-parent` in place of a model is the parent model, so omit the model and pass the effort. A role with no line runs on the parent model. Each code playbook reads its own line (`feature, refactoring`, `bug-fix`, `perf-issue`, or `hillclimb`), and prose and judgment read `judgment and prose`. A line with several entries is a panel with one seat per entry. A model this harness cannot run starts in a managed terminal on the harness that can, except `swarm workers`, which run on the parent model at low effort. A seat you cannot start is missing, not filled: say so.
 
-- Code, prose, and judgment: `claude-opus-5-5-xhigh-fast`.
-- Trivial mechanical edits: `claude-opus-5-5-high-fast`.
-- Diverse review and design panels: one runner each on `claude-fable-5-2-high`, `claude-opus-5-5-high-fast`, and `gemini-4-neon-xhigh`.
-
-**Fable 5.2 is an exception.** It runs outside a panel only when the user named it for this task or two Opus 5.5 xhigh runs of the same brief failed its check. Say which. Difficulty alone never qualifies.
-
-**Match the model to the job.** Start from the role's line or default, keep its family, and set the level the job needs. The `/setup-pstack` budget sets each role's starting level. Panel seats keep their listed level. Raise any other role one step, up to xhigh, for the hardest or subtlest work, lower it one step for judgment, and two or more steps for routine work. No role runs above xhigh. Opus 5.5 always runs its `-fast` slug. Verification always runs on the `swarm workers` model, `claude-opus-5-5-high-fast` by default. A Gemini seat runs at `gemini-4-neon-xhigh` unless its line names another level. If the Task tool rejects a slug, never pass it again. Fall back to the role's line or default, then the calling skill's fallback, then the closest valid slug of the same family, then omit `model`. Say so.
+**Set the effort on every subagent call.** Never leave it to the harness default. Start from the role's line. The `/hstack-setup` budget sets each role's starting effort. Panel seats keep their listed effort. Raise any other role one step, up to xhigh, for the hardest or subtlest work, lower it one step for judgment, and two or more steps for routine work. No role runs above xhigh.
 
 You own every subagent's work. Review the diff and write your own summary. A second opinion is the same prompt on another vendor's model.
 
@@ -105,6 +99,8 @@ Write short declarative sentences with no long dash and no colon as a connector.
 
 ## Playbooks
 
-Match the task to a playbook and open its steps at `playbooks/<title>.md`, with the title in kebab case. Copy its steps into the todolist tool first. Large, cross-cutting, or unattended work, or a task no playbook fits, routes to the **figure-it-out** skill.
+Match the task to a playbook and open its steps. Write its steps down as a list before starting. Large, cross-cutting, or unattended work, or a task no playbook fits, routes to the **figure-it-out** skill.
 
-Investigation, Bug fix, Perf issue, Hillclimb, Runtime forensics, Trace forensics, Feature, Refactoring, Prototype, Visual parity, Authoring a skill, Eval, Babysit, Shipping, Autonomous run, Autopilot-full, Autopilot-stack, Session pickup, Pause safely, Multi-phase plan, Worktree cleanup, Opening a PR.
+**Code.** [Investigation](playbooks/investigation.md), [Bug fix](playbooks/bug-fix.md), [Feature](playbooks/feature.md), [Refactoring](playbooks/refactoring.md), [Prototype](playbooks/prototype.md), [Perf issue](playbooks/perf-issue.md), [Hillclimb](playbooks/hillclimb.md), [Runtime forensics](playbooks/runtime-forensics.md), [Trace forensics](playbooks/trace-forensics.md), [Opening a PR](playbooks/opening-a-pr.md), [Babysit](playbooks/babysit.md), [Shipping](playbooks/shipping.md), [Worktree cleanup](playbooks/worktree-cleanup.md). Rewriting existing history → [tidy](../tidy/SKILL.md).
+
+**Work on the work.** [Authoring a skill](playbooks/authoring-a-skill.md), [Eval](playbooks/eval.md), [Session pickup](playbooks/session-pickup.md), [Pause safely](playbooks/pause-safely.md), [Multi-phase plan](playbooks/multi-phase-plan.md), [Autonomous run](playbooks/autonomous-run.md), [Autopilot-full](playbooks/autopilot-full.md), [Autopilot-stack](playbooks/autopilot-stack.md). Upstream's changes → **track-pstack**. This session's lessons → **reflect**. Mistakes that repeat across sessions → **correct**. Earlier sessions → **recall**.

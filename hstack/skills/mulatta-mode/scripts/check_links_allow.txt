@@ -1,0 +1,12 @@
+# A path a skill names without this tree holding it. One per line, with why.
+# Copying cannot fix these, so they are recorded rather than reported.
+
+# Skills that ship with their tool through the system configuration, so they
+# are installed beside this tree and never held in it.
+git-surgeon
+nixbot-cli
+gh-stack
+
+# ctx ships with the dotfiles beside the ctx package they install, so it is
+# installed beside this tree and never held in it.
+../ctx/SKILL.md
