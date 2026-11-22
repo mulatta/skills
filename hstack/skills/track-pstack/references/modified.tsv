@@ -25,10 +25,10 @@ skills/poteto-mode/playbooks/prototype.md	No control skill is installed, so a vi
 skills/poteto-mode/playbooks/refactoring.md	Models come from the role lines. The user opens PRs themselves. No control skill is installed, so the smoke run names no tool
 skills/poteto-mode/playbooks/runtime-forensics.md	No control skill is installed, so capturing the live signal names no tool
 skills/poteto-mode/playbooks/session-pickup.md	Upstream names Cursor's `agent-transcripts/`
-skills/poteto-mode/playbooks/shipping.md	Cursor's cloud agents are not here, and Gitea stands in for Origin. Merge rights do not tell the user's repository from a shared one: the user holds them in both, so the agent merges only in a repository the user owns and never in any other. Graphite is not used here, so the guard against requiring it is gone
+skills/poteto-mode/playbooks/shipping.md	Cursor's cloud agents are not here, and Gitea stands in for Origin. Merge rights do not tell the user's repository from a shared one: the user holds them in both, so the agent merges only in a repository the user owns and never in any other. Graphite is not used here, so the guard against requiring it is gone. The user owns every merge alone, so a verdict is PASS or FAIL in the session's report, with any step left to the user, and nothing goes on the PR
 skills/poteto-mode/playbooks/worktree-cleanup.md	Worktrees here sit in four places upstream does not know
 skills/poteto-mode/scripts/	The same four places, and worktrees with no branch checked out
-skills/poteto-mode/worker.md	A started agent here commits and reports. It does not open PRs. Upstream gives the delegate the mode through `poteto-agent` alone; here `worker.md` does, so a delegate started on a harness with no agent types gets it too
+skills/poteto-mode/worker.md	A started agent here commits and reports. It does not open PRs. Upstream gives the delegate the mode through `poteto-agent` alone; here `worker.md` does, so a delegate started on a harness with no agent types gets it too. Evidence goes in a file linked from the report, not in a PR comment
 skills/principle-laziness-protocol/SKILL.md	"Fewer lines" was read as licence to compress the code that stays; the added rule limits deletion to unneeded behaviour
 skills/recall/SKILL.md	Upstream reads Cursor's transcripts. The session index here skips records, so it cannot prove an absence
 skills/reflect/SKILL.md	The common state in this user's sessions was a loaded file with no clause, which more prose in a skill does not fix
