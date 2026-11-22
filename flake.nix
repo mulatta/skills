@@ -108,7 +108,7 @@
             packages = [
               pkgs.bun
               pkgs.gh
-              pkgs.shellcheck
+              treefmtEval.${system}.config.build.wrapper
             ];
             shellHook = ''
               ln -sfnT ${nodeModulesFor.${system}}/node_modules node_modules

@@ -45,8 +45,9 @@ pick what to apply by hand.
 ## Checks
 
 From the repository root, `nix flake check` runs the type check, the tests,
-the link check, and the format check. `nix develop` opens a shell with bun,
-`gh`, and shellcheck, and links `node_modules` from `package-lock.json`.
+the link check, and the treefmt check, which runs the formatters and
+shellcheck. `nix fmt` applies them. `nix develop` opens a shell with bun,
+`gh`, and `treefmt`, and links `node_modules` from `package-lock.json`.
 
 ## License
 
