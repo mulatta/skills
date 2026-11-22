@@ -95,7 +95,7 @@
         tests = runInRepo system "tests" "bun test hstack/skills/*/tests";
         links =
           runInRepo system "links"
-            "bun hstack/skills/mulatta-mode/scripts/check_links.ts hstack/skills";
+            "bun hstack/skills/mulatta-mode/scripts/check_links.ts hstack/skills tools";
       });
 
       devShells = eachSystem (

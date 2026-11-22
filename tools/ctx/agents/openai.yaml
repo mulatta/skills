@@ -1,0 +1,5 @@
+interface:
+  display_name: "Ctx"
+  short_description: "Search prior agent sessions and code origins"
+policy:
+  allow_implicit_invocation: false
