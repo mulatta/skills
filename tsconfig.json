@@ -10,6 +10,6 @@
     "target": "esnext",
     "types": ["bun"]
   },
-  "include": ["hstack/**/*.ts"],
+  "include": ["hstack/**/*.ts", "seed/**/*.ts"],
   "exclude": ["**/node_modules", "hstack/skills/mulatta-mode/scripts/watch-pr"]
 }

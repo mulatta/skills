@@ -1,0 +1,5 @@
+interface:
+  display_name: "Fix Root Causes"
+  short_description: "Fix where the system first went wrong"
+policy:
+  allow_implicit_invocation: false

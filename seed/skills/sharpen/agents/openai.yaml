@@ -1,0 +1,6 @@
+interface:
+  display_name: "Sharpen"
+  short_description: "Make a task deeper instead of bigger"
+  default_prompt: "Use $sharpen to make this task deeper before I start it."
+policy:
+  allow_implicit_invocation: false

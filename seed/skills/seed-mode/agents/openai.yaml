@@ -1,0 +1,6 @@
+interface:
+  display_name: "Seed Mode"
+  short_description: "A starting way of working, with its playbooks"
+  default_prompt: "Work in $seed-mode for this task."
+policy:
+  allow_implicit_invocation: false
