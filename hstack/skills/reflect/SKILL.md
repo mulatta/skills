@@ -29,6 +29,6 @@ Each candidate is a `##` heading that names the correction, followed by four fie
 
 A proposal that replaces a rule deletes the old rule in the same finding.
 
-Present Accepted (problem, state, prior session, proposal, file), Rejected (reason), Candidates and Backlog, and wait for approval before editing anything.
+Present Accepted (problem, state, prior session, proposal, file), Rejected (reason), Candidates and Backlog, and wait for approval before editing anything. Quote the current and proposed text verbatim, each with a translation when the reply language differs from the file's.
 
 Edit a skill at `~/.claude/skills/<name>/`. Never edit a skill installed from a package. After approval, make the edit, run `bun ../mulatta-mode/scripts/check_links.ts <the skills directory that holds the edited file>`, and commit one skill per commit in the repository that holds it. Never push.
