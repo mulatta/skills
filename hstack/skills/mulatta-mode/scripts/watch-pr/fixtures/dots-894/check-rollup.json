@@ -1,0 +1,96 @@
+{
+  "data": {
+    "repository": {
+      "pullRequest": {
+        "commits": {
+          "nodes": [
+            {
+              "commit": {
+                "statusCheckRollup": {
+                  "contexts": {
+                    "pageInfo": {
+                      "hasNextPage": false,
+                      "endCursor": "MTA"
+                    },
+                    "nodes": [
+                      {
+                        "__typename": "CheckRun",
+                        "name": "auto-merge-dependency-updates",
+                        "status": "COMPLETED",
+                        "conclusion": "SUCCESS",
+                        "detailsUrl": "https://github.com/mulatta/dots/actions/runs/45109251869/job/137477582980"
+                      },
+                      {
+                        "__typename": "CheckRun",
+                        "name": "auto-merge-dependency-updates",
+                        "status": "COMPLETED",
+                        "conclusion": "SUCCESS",
+                        "detailsUrl": "https://github.com/mulatta/dots/actions/runs/45117939887/job/137504955259"
+                      },
+                      {
+                        "__typename": "CheckRun",
+                        "name": "auto-merge-dependency-updates",
+                        "status": "COMPLETED",
+                        "conclusion": "SUCCESS",
+                        "detailsUrl": "https://github.com/mulatta/dots/actions/runs/45118050326/job/137505310817"
+                      },
+                      {
+                        "__typename": "CheckRun",
+                        "name": "nixbot/nix-build github:mulatta/dots#checks.x86_64-linux.home-manager-citra",
+                        "status": "IN_PROGRESS",
+                        "conclusion": null,
+                        "detailsUrl": "https://nixbot.mulatta.io/repos/github/mulatta/dots/builds/171"
+                      },
+                      {
+                        "__typename": "CheckRun",
+                        "name": "gitea-mq",
+                        "status": "COMPLETED",
+                        "conclusion": "SUCCESS",
+                        "detailsUrl": "https://mq.mulatta.io/repo/github/mulatta/dots/pr/894"
+                      },
+                      {
+                        "__typename": "CheckRun",
+                        "name": "gitea-mq/nixbot/nix-build",
+                        "status": "COMPLETED",
+                        "conclusion": "SUCCESS",
+                        "detailsUrl": "https://nixbot.mulatta.io/repos/github/mulatta/dots/builds/173"
+                      },
+                      {
+                        "__typename": "CheckRun",
+                        "name": "gitea-mq/nixbot/nix-eval",
+                        "status": "COMPLETED",
+                        "conclusion": "SUCCESS",
+                        "detailsUrl": "https://nixbot.mulatta.io/repos/github/mulatta/dots/builds/173"
+                      },
+                      {
+                        "__typename": "CheckRun",
+                        "name": "nixbot/effects",
+                        "status": "COMPLETED",
+                        "conclusion": "SUCCESS",
+                        "detailsUrl": "https://nixbot.mulatta.io/repos/github/mulatta/dots/builds/171"
+                      },
+                      {
+                        "__typename": "CheckRun",
+                        "name": "nixbot/nix-build",
+                        "status": "COMPLETED",
+                        "conclusion": "SUCCESS",
+                        "detailsUrl": "https://nixbot.mulatta.io/repos/github/mulatta/dots/builds/171"
+                      },
+                      {
+                        "__typename": "CheckRun",
+                        "name": "nixbot/nix-eval",
+                        "status": "COMPLETED",
+                        "conclusion": "SUCCESS",
+                        "detailsUrl": "https://nixbot.mulatta.io/repos/github/mulatta/dots/builds/171"
+                      }
+                    ]
+                  }
+                }
+              }
+            }
+          ]
+        }
+      }
+    }
+  }
+}

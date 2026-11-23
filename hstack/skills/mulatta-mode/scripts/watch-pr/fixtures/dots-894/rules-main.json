@@ -1,0 +1,48 @@
+[
+  {
+    "type": "required_status_checks",
+    "parameters": {
+      "strict_required_status_checks_policy": false,
+      "do_not_enforce_on_create": true,
+      "required_status_checks": [
+        {
+          "context": "gitea-mq",
+          "integration_id": 4482194
+        }
+      ]
+    },
+    "ruleset_source_type": "Repository",
+    "ruleset_source": "mulatta/dots",
+    "ruleset_id": 20433444
+  },
+  {
+    "type": "required_status_checks",
+    "parameters": {
+      "strict_required_status_checks_policy": false,
+      "do_not_enforce_on_create": false,
+      "required_status_checks": [
+        {
+          "context": "nixbot/nix-eval"
+        },
+        {
+          "context": "nixbot/nix-build"
+        }
+      ]
+    },
+    "ruleset_source_type": "Repository",
+    "ruleset_source": "mulatta/dots",
+    "ruleset_id": 16587476
+  },
+  {
+    "type": "deletion",
+    "ruleset_source_type": "Repository",
+    "ruleset_source": "mulatta/dots",
+    "ruleset_id": 16587476
+  },
+  {
+    "type": "non_fast_forward",
+    "ruleset_source_type": "Repository",
+    "ruleset_source": "mulatta/dots",
+    "ruleset_id": 16587476
+  }
+]

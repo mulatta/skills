@@ -1,0 +1,66 @@
+[
+  {
+    "bucket": "pass",
+    "description": "",
+    "link": "https://github.com/mulatta/dots/actions/runs/45118050326/job/137505310817",
+    "name": "auto-merge-dependency-updates",
+    "state": "SUCCESS",
+    "workflow": "Auto Merge Dependency Updates"
+  },
+  {
+    "bucket": "pass",
+    "description": "",
+    "link": "https://nixbot.mulatta.io/repos/github/mulatta/dots/builds/173",
+    "name": "gitea-mq/nixbot/nix-build",
+    "state": "SUCCESS",
+    "workflow": ""
+  },
+  {
+    "bucket": "pass",
+    "description": "",
+    "link": "https://nixbot.mulatta.io/repos/github/mulatta/dots/builds/173",
+    "name": "gitea-mq/nixbot/nix-eval",
+    "state": "SUCCESS",
+    "workflow": ""
+  },
+  {
+    "bucket": "pass",
+    "description": "",
+    "link": "https://mq.mulatta.io/repo/github/mulatta/dots/pr/894",
+    "name": "gitea-mq",
+    "state": "SUCCESS",
+    "workflow": ""
+  },
+  {
+    "bucket": "pass",
+    "description": "",
+    "link": "https://nixbot.mulatta.io/repos/github/mulatta/dots/builds/171",
+    "name": "nixbot/effects",
+    "state": "SUCCESS",
+    "workflow": ""
+  },
+  {
+    "bucket": "pass",
+    "description": "",
+    "link": "https://nixbot.mulatta.io/repos/github/mulatta/dots/builds/171",
+    "name": "nixbot/nix-build",
+    "state": "SUCCESS",
+    "workflow": ""
+  },
+  {
+    "bucket": "pending",
+    "description": "",
+    "link": "https://nixbot.mulatta.io/repos/github/mulatta/dots/builds/171",
+    "name": "nixbot/nix-build github:mulatta/dots#checks.x86_64-linux.home-manager-citra",
+    "state": "IN_PROGRESS",
+    "workflow": ""
+  },
+  {
+    "bucket": "pass",
+    "description": "",
+    "link": "https://nixbot.mulatta.io/repos/github/mulatta/dots/builds/171",
+    "name": "nixbot/nix-eval",
+    "state": "SUCCESS",
+    "workflow": ""
+  }
+]

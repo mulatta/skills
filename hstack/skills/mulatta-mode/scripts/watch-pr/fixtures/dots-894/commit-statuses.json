@@ -1,0 +1,26 @@
+{
+  "data": {
+    "repository": {
+      "pullRequest": {
+        "commits": {
+          "nodes": [
+            {
+              "commit": {
+                "oid": "521c127d1bcd53277b9ef9c9166638737bd8a31f",
+                "statusCheckRollup": null
+              }
+            },
+            {
+              "commit": {
+                "oid": "860341299e3d9115986d9c02a24825910d3b369e",
+                "statusCheckRollup": {
+                  "state": "PENDING"
+                }
+              }
+            }
+          ]
+        }
+      }
+    }
+  }
+}

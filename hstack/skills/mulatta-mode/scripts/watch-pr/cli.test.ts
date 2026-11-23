@@ -1,4 +1,8 @@
 import { describe, expect, it } from "bun:test";
+import { spawnSync } from "node:child_process";
+import { mkdtempSync, rmSync, writeFileSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
 import { type CliRuntime, main, parseArgs } from "./cli.ts";
 import { fakeReader, passingCheck } from "./fakes.test-helper.ts";
 import { renderJson, renderPretty } from "./render.ts";
@@ -221,4 +225,70 @@ describe("main", () => {
     expect(harness.stdout.join("")).toContain("JSON (NDJSON while polling)");
     expect(reader.calls).toEqual([]);
   });
+});
+
+describe("mulatta/dots#894 at 8603412, a restarted nixbot attribute left in progress", () => {
+  const fixtures = join(import.meta.dir, "fixtures", "dots-894");
+  const stuck =
+    "nixbot/nix-build github:mulatta/dots#checks.x86_64-linux.home-manager-citra";
+
+  function watch(fastPath: "gh-pr-checks" | "graphql-rollup", format: string[]) {
+    const directory = mkdtempSync(join(tmpdir(), "watch-pr-894-"));
+    try {
+      writeFileSync(
+        join(directory, "gh"),
+        `#!/bin/sh
+dir="$WATCH_PR_FIXTURES"
+case "$*" in
+  "pr view 894 "*) cat "$dir/pr-view.json" ;;
+  "pr checks 894 "*)
+    if [ "$WATCH_PR_FAST_PATH" = gh-pr-checks ]; then cat "$dir/pr-checks.json"; exit 8; fi
+    echo "no checks reported" >&2; exit 1 ;;
+  *"query ReviewThreads"*) cat "$dir/review-threads.json" ;;
+  *"query PrCommitStatuses"*) cat "$dir/commit-statuses.json" ;;
+  *"query PrCheckRollup"*) cat "$dir/check-rollup.json" ;;
+  "api repos/mulatta/dots/rules/branches/main") cat "$dir/rules-main.json" ;;
+  "api repos/mulatta/dots/branches/main/protection/required_status_checks")
+    cat "$dir/protection-main.json"; echo "gh: Branch not protected (HTTP 404)" >&2; exit 1 ;;
+  *) echo "unexpected gh $*" >&2; exit 99 ;;
+esac
+`,
+        { mode: 0o755 }
+      );
+      const argv = ["--owner", "mulatta", "--repo", "dots", "--pr", "894", "--interval", "1", "--timeout", "1", ...format];
+      const program = `import { main } from ${JSON.stringify(join(import.meta.dir, "cli.ts"))};
+        process.exitCode = await main(${JSON.stringify(argv)});`;
+      return spawnSync(process.execPath, ["-e", program], {
+        encoding: "utf8",
+        timeout: 15_000,
+        env: {
+          ...process.env,
+          PATH: `${directory}:${process.env.PATH}`,
+          WATCH_PR_FIXTURES: fixtures,
+          WATCH_PR_FAST_PATH: fastPath,
+        },
+      });
+    } finally {
+      rmSync(directory, { recursive: true, force: true });
+    }
+  }
+
+  for (const fastPath of ["gh-pr-checks", "graphql-rollup"] as const) {
+    it(`is READY once the required checks pass and notes the stuck check (${fastPath})`, () => {
+      const pretty = watch(fastPath, ["--pretty"]);
+      expect(pretty.stdout).toStartWith("READY:");
+      expect(pretty.stdout).toContain(
+        `NOTE: non-gating checks not finished: ${stuck} (${fastPath === "gh-pr-checks" ? "IN_PROGRESS" : "PENDING"})`
+      );
+      expect(pretty.status).toBe(0);
+
+      const json = watch(fastPath, []);
+      expect(json.status).toBe(0);
+      const verdict = JSON.parse(json.stdout.trim().split("\n").at(-1) ?? "");
+      expect(verdict).toMatchObject({
+        kind: "READY",
+        scope: { pr: { proof: { ci: { nonGating: [{ name: stuck, kind: "pending" }] } } } },
+      });
+    }, 40_000);
+  }
 });
