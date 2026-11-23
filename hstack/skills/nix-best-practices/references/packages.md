@@ -4,7 +4,7 @@ Rules for a derivation: a `callPackage` file under `pkgs/` or `packages/`, or a 
 
 | Rule | Summary |
 |------|---------|
-| What current models already write | `finalAttrs`, `tag` with an SRI `hash`, `meta.mainProgram`, an install check of `--version` (`versionCheckHook` or `pythonImportsCheck`), and one skipped test with a comment saying why. Check they are there. |
+| What current models already write | `finalAttrs`, `tag` with an SRI `hash`, `meta.mainProgram`, an install check (`versionCheckHook` runs `--version`, `pythonImportsCheck` imports a Python module), and one skipped test with a comment saying why. Check they are there. |
 | Structured attributes on a new package (nixpkgs) | `__structuredAttrs = true;`: nixpkgs documentation requires it on every new top-level package and nixpkgs-vet checks it. Add `strictDeps = true;` too, which keeps build and runtime inputs apart for cross-compilation. |
 | `meta` is complete | `description`, `homepage`, `changelog` pointing at the release notes for `finalAttrs.version`, the exact `license`, `mainProgram`, and `maintainers` (nixpkgs). `passthru` comes before `meta`. |
 | One place to update | Version and hashes live in the derivation, so `passthru.updateScript = nix-update-script { };` can bump them. A repository with its own updater, such as per-package `nix-update-args` files or an `update.py`, uses that instead. |
