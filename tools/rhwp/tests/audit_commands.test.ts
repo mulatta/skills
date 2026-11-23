@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, test } from "bun:test";
-import { cpSync, mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
+import { cpSync, mkdirSync, mkdtempSync, readdirSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { dirname, join, resolve } from "node:path";
 
@@ -143,6 +143,16 @@ describe("audit_commands", () => {
       const done = run(root, ["--json"]);
       expect(done.exitCode).toBe(0);
       expect(JSON.parse(done.stdout)).toEqual({ version: version(), passes: 3, findingCount: 0, findings: [] });
+    });
+
+    test("the installed skill audits its own documents", () => {
+      const done = run(SKILL, []);
+      const references = readdirSync(join(SKILL, "references")).filter((n) => n.endsWith(".md"));
+      const findings = done.stdout === "" ? 0 : done.stdout.trimEnd().split("\n").length;
+      expect(done.stderr).toBe(
+        `\n${version()} / ${1 + references.length} documents / 3 passes / ${findings} findings\n`,
+      );
+      expect(done.exitCode).toBe(findings ? 1 : 0);
     });
   });
 });

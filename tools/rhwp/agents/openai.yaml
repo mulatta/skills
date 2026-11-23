@@ -1,0 +1,3 @@
+interface:
+  display_name: "Rhwp"
+  short_description: "Read, fill and verify HWP documents"
