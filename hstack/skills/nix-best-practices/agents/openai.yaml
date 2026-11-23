@@ -1,5 +1,5 @@
 interface:
   display_name: "Nix Best Practices"
-  short_description: "Nix and flake rules, from past corrections"
+  short_description: "Nix patterns and working rules"
 policy:
   allow_implicit_invocation: false

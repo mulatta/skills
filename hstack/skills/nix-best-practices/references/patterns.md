@@ -2,24 +2,7 @@
 
 Code examples for each rule under "Writing the code" in `SKILL.md`.
 
-## `lib.` is written out
-
-```nix
-config = lib.mkIf cfg.enable { ... };
-home.packages = with pkgs; [ ripgrep fd ];
-type = with lib.types; either (listOf str) str;
-```
-
-Not this:
-
-```nix
-hostOptions = with lib; {
-  ipv4 = mkOption { type = types.str; };
-};
-meta = with lib; { license = licenses.mit; };
-```
-
-## No lambda without arguments
+## A module that takes no argument is an attribute set
 
 ```nix
 {
@@ -27,17 +10,7 @@ meta = with lib; { license = licenses.mit; };
 }
 ```
 
-Not `{ ... }:` in front of it. A module that reads `config`, `lib`, or `pkgs` keeps its head: `{ config, lib, ... }:`.
-
-## Dotted paths
-
-```nix
-systemd.services.qdrant.serviceConfig.DynamicUser = lib.mkForce false;
-systemd.services.qdrant.serviceConfig.User = "qdrant";
-systemd.services.qdrant.serviceConfig.Group = "qdrant";
-```
-
-Not gathered into `systemd.services.qdrant.serviceConfig = { ... };`. A nested set is for a namespace with many keys, such as `networking = { ... };` in a host's network file.
+Not `{ ... }:` or `_:` in front of it. A module that reads `config`, `lib`, or `pkgs` keeps its head: `{ config, lib, ... }:`. A package file called through `callPackage` keeps its argument set, and an overlay stays `final: prev:`.
 
 ## Plain over generated
 
@@ -81,9 +54,29 @@ in
 buildGoModule { src = fooSource; }
 ```
 
-Write `src = fetchFromGitHub { ... };`.
+Write `src = fetchFromGitHub { ... };`. A name that explains a long expression may stay.
 
-## `finalAttrs`, not `rec`
+## Current nixpkgs idioms
+
+### No file-wide `with lib;`
+
+```nix
+config = lib.mkIf cfg.enable { ... };
+# or, in the let: inherit (lib) mkIf mkOption types;
+home.packages = with pkgs; [ ripgrep fd ];
+type = with lib.types; either (listOf str) str;
+```
+
+Not this:
+
+```nix
+hostOptions = with lib; {
+  ipv4 = mkOption { type = types.str; };
+};
+meta = with lib; { license = licenses.mit; };
+```
+
+### `finalAttrs`, not `rec`
 
 ```nix
 buildGoModule (finalAttrs: {
@@ -100,7 +93,7 @@ buildGoModule (finalAttrs: {
 
 A package that refers to none of its own attributes stays a plain attribute set.
 
-## Platform through `stdenv.hostPlatform`
+### Platform through `stdenv.hostPlatform`
 
 ```nix
 home.packages = lib.optionals pkgs.stdenv.hostPlatform.isDarwin [ pkgs.colima ];
