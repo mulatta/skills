@@ -92,7 +92,7 @@
       checks = eachSystem (system: {
         formatting = treefmtEval.${system}.config.build.check self;
         typecheck = runInRepo system "typecheck" "bun node_modules/typescript/bin/tsc --noEmit";
-        tests = runInRepo system "tests" "bun test hstack/skills/*/tests";
+        tests = runInRepo system "tests" "bun test hstack/skills/*/tests tools/*/tests";
         links =
           runInRepo system "links"
             "bun hstack/skills/mulatta-mode/scripts/check_links.ts hstack/skills tools";

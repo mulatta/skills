@@ -1,0 +1,17 @@
+{
+  "comment": "Flags that work but are absent from help. Record the verification date and evidence. Recheck after each upgrade.",
+  "allow": [
+    {
+      "invocation": "edit set-cell --verify",
+      "verified": "2026-11-17 / rhwp v0.9.0",
+      "evidence": "Returns exit 0 with verify:{diffCount:0,identical:true}. `edit set-cell --help` contains no verify string.",
+      "risk": "Undocumented, so it can disappear without notice. Removal shows up as exit 2."
+    },
+    {
+      "invocation": "capabilities --json",
+      "verified": "2026-11-17 / rhwp v0.9.0",
+      "evidence": "Exit 0 with --search, exit 2 alone. The `capabilities --help` option list shows only --search.",
+      "risk": "It depends on the combination, so it is easy to misuse alone. The skill text always pairs it with --search."
+    }
+  ]
+}
