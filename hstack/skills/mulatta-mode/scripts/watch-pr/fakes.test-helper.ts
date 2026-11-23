@@ -8,6 +8,7 @@ import type {
   PullRequestFacts,
   Repository,
   RawReviewThread,
+  RequiredChecks,
   ReviewThread,
   ReviewThreadPage,
   RollupPage,
@@ -21,6 +22,7 @@ export interface FakeReaderOptions {
   readonly threads?: readonly ReviewThread[];
   readonly threadPages?: readonly ReviewThreadPage[];
   readonly commitRollups?: readonly CommitRollup[];
+  readonly requiredChecks?: RequiredChecks;
   readonly openPullRequests?: readonly OpenPullRequest[];
   readonly origin?: Repository | null;
   readonly current?: PrContext;
@@ -124,6 +126,10 @@ export function fakeReader(
     async commitRollups() {
       calls.push("commitRollups");
       return options.commitRollups ?? [{ oid: "head", state: "SUCCESS" }];
+    },
+    async requiredChecks() {
+      calls.push("requiredChecks");
+      return options.requiredChecks ?? { kind: "undeclared" };
     },
   };
 }

@@ -19,6 +19,7 @@ import {
   passingCheck,
   pendingCheck,
 } from "./fakes.test-helper.ts";
+import { renderPretty } from "./render.ts";
 import type {
   GitHubReader,
   NonEmpty,
@@ -26,6 +27,7 @@ import type {
   PrContext,
   ProgressVerdict,
   PullRequestFacts,
+  RequiredChecks,
   RollupState,
 } from "./types.ts";
 import { parsePrNumber } from "./types.ts";
@@ -109,6 +111,7 @@ describe("snapshot query planning", () => {
       "pullRequest",
       "reviewThreadPage:null",
       "checksFastPath",
+      "requiredChecks",
     ]);
   });
 
@@ -479,4 +482,117 @@ describe("polling deadline sleeps", () => {
     expect(sleeps).toEqual([60]);
   });
 
+});
+
+describe("required-check gating", () => {
+  const declared = {
+    kind: "declared",
+    contexts: new Set(["nixbot/nix-build"]),
+  } as const;
+  async function snapshot(
+    checks: ReturnType<typeof passingCheck>[],
+    requiredChecks: RequiredChecks,
+    facts: Partial<PullRequestFacts> = {},
+    headRollup: RollupState = "SUCCESS"
+  ) {
+    return readSnapshot({
+      reader: fakeReader({
+        facts,
+        fastPath: { kind: "checks", checks },
+        requiredChecks,
+        commitRollups: [{ oid: "head", state: headRollup }],
+      }),
+      context: context(60),
+      pendingHistory: "include",
+      allowDraft: false,
+    });
+  }
+
+  it("waits on any pending check when the branch declares no required checks", async () => {
+    const row = await snapshot(
+      [passingCheck("nixbot/nix-build"), pendingCheck("nixbot/effects")],
+      { kind: "undeclared" },
+      { mergeStateStatus: "UNSTABLE" },
+      "PENDING"
+    );
+    expect(classifyPr(row)).toMatchObject({
+      kind: "waiting",
+      pending: [{ name: "nixbot/effects" }],
+      nonGating: [],
+    });
+  });
+
+  it("is ready past a failing non-required check and still reports it", async () => {
+    const row = await snapshot(
+      [passingCheck("nixbot/nix-build"), failedCheck("lint")],
+      declared,
+      { mergeStateStatus: "UNSTABLE" },
+      "FAILURE"
+    );
+    expect(classifyPr(row)).toMatchObject({
+      kind: "ready",
+      pr: { proof: { ci: { nonGating: [{ name: "lint", kind: "failed" }] } } },
+    });
+  });
+
+  it("blocks on a failing required check and keeps the non-required ones apart", async () => {
+    const row = await snapshot(
+      [failedCheck("nixbot/nix-build"), pendingCheck("lint")],
+      declared,
+      { mergeStateStatus: "UNSTABLE" },
+      "FAILURE"
+    );
+    expect(classifyPr(row)).toMatchObject({
+      kind: "blocker",
+      blocker: {
+        kind: "failing-checks",
+        ci: {
+          failed: [{ name: "nixbot/nix-build" }],
+          pending: [],
+          nonGating: [{ name: "lint", kind: "pending" }],
+        },
+      },
+    });
+  });
+
+  it("waits only on the required check and notes the stuck one", async () => {
+    let now = 0;
+    const emitted: ProgressVerdict[] = [];
+    const result = await runSimple({
+      dependencies: {
+        reader: fakeReader({
+          fastPath: {
+            kind: "checks",
+            checks: [pendingCheck("nixbot/nix-build"), pendingCheck("stuck")],
+          },
+          requiredChecks: declared,
+        }),
+        clock: {
+          now: () => now,
+          observedAt: () => "2026-07-26T00:00:00.000Z",
+          async sleep(seconds) {
+            now += seconds;
+          },
+        },
+        emit(verdict) {
+          emitted.push(verdict);
+        },
+      },
+      contexts: [context(61)],
+      mode: "single",
+      statusOnly: false,
+      options: { ...options, timeout: 5 },
+    });
+    expect(result.kind).toBe("TIMEOUT");
+    const waiting = emitted[0];
+    if (waiting === undefined) throw new Error("expected a WAITING verdict");
+    expect(waiting).toMatchObject({
+      kind: "WAITING",
+      reason: { pending: [{ name: "nixbot/nix-build" }] },
+      nonGating: [{ name: "stuck" }],
+    });
+    expect(renderPretty(waiting)).toBe(
+      "WAITING: frontier=#61; 1 check pending\nNOTE: non-gating checks not finished: stuck (PENDING)\n"
+    );
+  });
 });

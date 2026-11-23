@@ -69,14 +69,26 @@ export async function readSnapshot(args: {
     return { kind: "closed", context: args.context, facts };
   const threads = await resolveReviewThreads(args.reader, args.context);
   const checks = await resolveChecks(args.reader, args.context);
+  const required = await args.reader.requiredChecks({
+    repository: args.context,
+    base: facts.baseRefName,
+  });
+  const unfinished = checks.checks.filter(
+    (check): check is T.UnfinishedCheck =>
+      check.kind === "failed" || check.kind === "pending"
+  );
+  const gates = (check: T.Check): boolean =>
+    required.kind === "undeclared" || required.contexts.has(check.name);
+  const nonGating = unfinished.filter((check) => !gates(check));
   const failed = nonEmpty(
-    checks.checks.filter(
-      (check): check is T.FailedCheck => check.kind === "failed"
+    unfinished.filter(
+      (check): check is T.FailedCheck => check.kind === "failed" && gates(check)
     )
   );
   const pending = nonEmpty(
-    checks.checks.filter(
-      (check): check is T.PendingCheck => check.kind === "pending"
+    unfinished.filter(
+      (check): check is T.PendingCheck =>
+        check.kind === "pending" && gates(check)
     )
   );
   let ci: T.CiState;
@@ -85,6 +97,7 @@ export async function readSnapshot(args: {
       kind: "ci-pending",
       source: checks.source,
       all: checks.checks,
+      nonGating,
       failed: [],
       pending,
       hadPreviousPassingCi: false,
@@ -94,6 +107,7 @@ export async function readSnapshot(args: {
     const base = {
       source: checks.source,
       all: checks.checks,
+      nonGating,
       hadPreviousPassingCi: merge.hadPreviousPassingCi,
     };
     if (failed !== null)
@@ -227,7 +241,12 @@ export function classifyPr(
   ])
     if (blocker !== null) return { kind: "blocker", blocker };
   if (row.kind === "open" && row.ci.kind === "ci-pending")
-    return { kind: "waiting", frontier: row.context, pending: row.ci.pending };
+    return {
+      kind: "waiting",
+      frontier: row.context,
+      pending: row.ci.pending,
+      nonGating: row.ci.nonGating,
+    };
   const ready = readyContribution(row, allowDraft);
   if (ready === null) throw new Error("snapshot has no classified decision");
   return ready.kind === "merged-pr"
@@ -253,6 +272,7 @@ export function selectTierMajorStackDecision(
         kind: "waiting",
         frontier: row.context,
         pending: row.ci.pending,
+        nonGating: row.ci.nonGating,
       };
   const prs = nonEmpty(
     rows
@@ -501,6 +521,7 @@ export async function runSimple(args: {
         kind: "WAITING",
         terminal: false,
         frontier: decision.frontier,
+        nonGating: decision.nonGating,
         reason: { kind: "pending-checks", pending: decision.pending },
       })
     );
@@ -639,6 +660,7 @@ export type QueueEvaluation =
       readonly kind: "waiting";
       readonly state: QueueState;
       readonly frontier: T.PrContext;
+      readonly nonGating: readonly T.UnfinishedCheck[];
       readonly reason:
         | {
             readonly kind: "pending-checks";
@@ -706,6 +728,7 @@ export function evaluateQueue(
     kind: "waiting",
     state: { ...state, frontier, lastWaitKey: key },
     frontier,
+    nonGating: row.kind === "open" ? row.ci.nonGating : [],
     reason,
     emit: state.lastWaitKey !== key,
   };
@@ -823,6 +846,7 @@ export async function runQueued(args: {
               kind: "WAITING",
               terminal: false,
               frontier: evaluation.frontier,
+              nonGating: evaluation.nonGating,
               reason: evaluation.reason,
             })
           );

@@ -1,18 +1,29 @@
 import type * as T from "./types.ts";
 export const renderJson = (verdict: T.WatcherVerdict): string =>
   `${JSON.stringify(verdict)}\n`;
+function nonGatingNote(
+  checks: readonly T.UnfinishedCheck[],
+  pr?: T.PrContext
+): string {
+  return checks.length === 0
+    ? ""
+    : `NOTE: ${pr === undefined ? "" : `#${pr.number} `}non-gating checks not finished: ${checks.map((check) => `${check.name} (${check.reportedState})`).join(", ")}\n`;
+}
 function ciCell(row: T.PrSnapshot): string {
   if (row.kind !== "open") return "\u2014";
   const was = row.ci.hadPreviousPassingCi ? ", was ✅" : "";
+  const nonGating = row.ci.nonGating.length
+    ? `, ${row.ci.nonGating.length} non-gating not finished`
+    : "";
   switch (row.ci.kind) {
     case "ci-clean":
-      return "✅";
+      return `✅${nonGating}`;
     case "ci-pending":
-      return `⏳ ${row.ci.pending.length} pending${was}`;
+      return `⏳ ${row.ci.pending.length} pending${nonGating}${was}`;
     case "ci-failing":
-      return `❌ ${row.ci.failed.length} failed${row.ci.pending.length ? `, ${row.ci.pending.length} pending` : ""}${was}`;
+      return `❌ ${row.ci.failed.length} failed${row.ci.pending.length ? `, ${row.ci.pending.length} pending` : ""}${nonGating}${was}`;
     case "ci-github-rejected":
-      return `❌ GitHub reports failing checks${was}`;
+      return `❌ GitHub reports failing checks${nonGating}${was}`;
     default: {
       const exhaustive: never = row.ci;
       return exhaustive;
@@ -137,9 +148,11 @@ export function renderPretty(verdict: T.WatcherVerdict): string {
     case "STATUS":
       return renderStatusTable(verdict.rows);
     case "WAITING":
-      return verdict.reason.kind === "pending-checks"
-        ? `WAITING: frontier=#${verdict.frontier.number}; ${verdict.reason.pending.length} check${verdict.reason.pending.length === 1 ? "" : "s"} pending\n`
-        : `WAITING: frontier=#${verdict.frontier.number} is blocker-free; waiting for merge queue (${verdict.reason.unmergedCount} PR${verdict.reason.unmergedCount === 1 ? "" : "s"} unmerged)\n`;
+      return `${
+        verdict.reason.kind === "pending-checks"
+          ? `WAITING: frontier=#${verdict.frontier.number}; ${verdict.reason.pending.length} check${verdict.reason.pending.length === 1 ? "" : "s"} pending\n`
+          : `WAITING: frontier=#${verdict.frontier.number} is blocker-free; waiting for merge queue (${verdict.reason.unmergedCount} PR${verdict.reason.unmergedCount === 1 ? "" : "s"} unmerged)\n`
+      }${nonGatingNote(verdict.nonGating)}`;
     case "ADVANCE":
       return `ADVANCE: merged #${verdict.merged.number}; next=#${verdict.frontier.number}; remaining=${verdict.remaining}\n`;
     case "RETRY":
@@ -151,7 +164,19 @@ export function renderPretty(verdict: T.WatcherVerdict): string {
         verdict.scope.kind === "single" && verdict.scope.pr.kind === "ready-pr"
           ? `\nmergeStateStatus=${verdict.scope.pr.proof.ci.github.mergeStateStatus}\nreviewDecision=${verdict.scope.pr.proof.gate.reviewDecision}\nisDraft=${verdict.scope.pr.proof.gate.draft === "draft-allowed"}${verdict.scope.pr.proof.gate.draft === "draft-allowed" ? "\nnote=draft allowed (--allow-draft); leave draft \u2014 do not mark ready" : ""}`
           : "";
-      return `READY: no merge conflicts, no unresolved review threads, no failing or pending checks${detail}\n`;
+      const notes =
+        verdict.scope.kind === "single"
+          ? verdict.scope.pr.kind === "ready-pr"
+            ? nonGatingNote(verdict.scope.pr.proof.ci.nonGating)
+            : ""
+          : verdict.scope.prs
+              .map((pr) =>
+                pr.kind === "ready-pr"
+                  ? nonGatingNote(pr.proof.ci.nonGating, pr.context)
+                  : ""
+              )
+              .join("");
+      return `READY: no merge conflicts, no unresolved review threads, no failing or pending gating checks${detail}\n${notes}`;
     }
     case "COMPLETE":
       return `COMPLETE: queued stack merged (${verdict.queue.length} PR${verdict.queue.length === 1 ? "" : "s"})\n`;

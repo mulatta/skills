@@ -87,6 +87,10 @@ export type Check =
     });
 export type FailedCheck = Extract<Check, { readonly kind: "failed" }>;
 export type PendingCheck = Extract<Check, { readonly kind: "pending" }>;
+export type UnfinishedCheck = FailedCheck | PendingCheck;
+export type RequiredChecks =
+  | { readonly kind: "declared"; readonly contexts: ReadonlySet<string> }
+  | { readonly kind: "undeclared" };
 export interface CheckRead {
   readonly source: "gh-pr-checks" | "graphql-rollup";
   readonly checks: NonEmpty<Check>;
@@ -117,6 +121,7 @@ export type GitHubMergeAssessment = GitHubMergeAllowed | GitHubMergeRefusal;
 interface CiBase {
   readonly source: CheckRead["source"];
   readonly all: NonEmpty<Check>;
+  readonly nonGating: readonly UnfinishedCheck[];
   readonly hadPreviousPassingCi: boolean;
 }
 export type CiFailing = CiBase & {
@@ -245,6 +250,7 @@ export interface WaitingDecision {
   readonly kind: "waiting";
   readonly frontier: PrContext;
   readonly pending: NonEmpty<PendingCheck>;
+  readonly nonGating: readonly UnfinishedCheck[];
 }
 export type PrDecision =
   | { readonly kind: "blocker"; readonly blocker: MergeBlocker }
@@ -285,6 +291,7 @@ export type ProgressVerdict =
     })
   | (Progress<"WAITING"> & {
       readonly frontier: PrContext;
+      readonly nonGating: readonly UnfinishedCheck[];
       readonly reason:
         | {
             readonly kind: "pending-checks";
@@ -404,6 +411,10 @@ export interface GitHubReader {
     after: string | null
   ): Promise<ReviewThreadPage>;
   commitRollups(context: PrContext): Promise<readonly CommitRollup[]>;
+  requiredChecks(target: {
+    readonly repository: Repository;
+    readonly base: string;
+  }): Promise<RequiredChecks>;
 }
 export interface PollingOptions {
   readonly interval: number;

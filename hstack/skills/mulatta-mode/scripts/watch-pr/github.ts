@@ -13,6 +13,9 @@ interface CommandResult {
   readonly stdout: string;
   readonly stderr: string;
 }
+type ApiRead =
+  | { readonly kind: "absent" }
+  | { readonly kind: "present"; readonly json: unknown };
 export class WatcherQueryError extends Error {
   readonly failure: T.QueryFailure;
   constructor(failure: T.QueryFailure) {
@@ -60,7 +63,20 @@ function parseJson(text: string, label: string): unknown {
   }
 }
 async function runJson(argv: readonly [string, ...string[]]): Promise<unknown> {
+  return jsonResult(argv, await run(argv));
+}
+async function runJsonOrAbsent(
+  argv: readonly [string, ...string[]]
+): Promise<ApiRead> {
   const result = await run(argv);
+  return result.code !== 0 && /\(HTTP 404\)/.test(result.stderr)
+    ? { kind: "absent" }
+    : { kind: "present", json: jsonResult(argv, result) };
+}
+function jsonResult(
+  argv: readonly [string, ...string[]],
+  result: CommandResult
+): unknown {
   if (result.code !== 0)
     throw new WatcherQueryError({
       kind: "command-exit",
@@ -304,6 +320,48 @@ export function mapRollupNode(value: unknown): T.Check | null {
     ? { ...details, link, kind: "passed", reportedState: state }
     : { ...details, link, kind: "failed", reportedState: state || "FAILURE" };
 }
+export function parseRequiredChecks(sources: {
+  readonly rules: ApiRead;
+  readonly classic: ApiRead;
+}): T.RequiredChecks {
+  const contexts = new Set<string>();
+  const rules = sources.rules.kind === "present" ? sources.rules.json : [];
+  list(rules, "branch rules").forEach((item, index) => {
+    const rule = record(item, `branch rules[${index}]`);
+    if (rule.type !== "required_status_checks") return;
+    const checks = at(rule, ["parameters", "required_status_checks"]);
+    list(checks, `branch rules[${index}].required_status_checks`).forEach(
+      (check, position) =>
+        contexts.add(
+          string(
+            at(check, ["context"]),
+            `branch rules[${index}].required_status_checks[${position}].context`
+          )
+        )
+    );
+  });
+  if (sources.classic.kind === "present") {
+    const protection = record(sources.classic.json, "required status checks");
+    list(protection.contexts ?? [], "required status checks.contexts").forEach(
+      (context, index) =>
+        contexts.add(
+          string(context, `required status checks.contexts[${index}]`)
+        )
+    );
+    list(protection.checks ?? [], "required status checks.checks").forEach(
+      (check, index) =>
+        contexts.add(
+          string(
+            at(check, ["context"]),
+            `required status checks.checks[${index}].context`
+          )
+        )
+    );
+  }
+  return contexts.size === 0
+    ? { kind: "undeclared" }
+    : { kind: "declared", contexts };
+}
 function parseComment(value: unknown): T.ReviewComment {
   const object = record(value, "review comment");
   const author =
@@ -456,6 +514,7 @@ function graphqlArgs(
 }
 
 export class GhGitHubReader implements T.GitHubReader {
+  readonly #requiredChecks = new Map<string, Promise<T.RequiredChecks>>();
   async originRepo(): Promise<T.Repository | null> {
     const result = await run(["git", "remote", "get-url", "origin"]);
     return result.code === 0 ? parseRemote(result.stdout) : null;
@@ -607,6 +666,29 @@ export class GhGitHubReader implements T.GitHubReader {
               ),
       };
     });
+  }
+  requiredChecks({
+    repository,
+    base,
+  }: {
+    readonly repository: T.Repository;
+    readonly base: string;
+  }): Promise<T.RequiredChecks> {
+    const key = `${repository.owner}/${repository.repo}:${base}`;
+    const cached = this.#requiredChecks.get(key);
+    if (cached !== undefined) return cached;
+    const prefix = `repos/${repository.owner}/${repository.repo}`;
+    const read = Promise.all([
+      runJsonOrAbsent(["gh", "api", `${prefix}/rules/branches/${base}`]),
+      runJsonOrAbsent([
+        "gh",
+        "api",
+        `${prefix}/branches/${base}/protection/required_status_checks`,
+      ]),
+    ]).then(([rules, classic]) => parseRequiredChecks({ rules, classic }));
+    this.#requiredChecks.set(key, read);
+    read.catch(() => this.#requiredChecks.delete(key));
+    return read;
   }
 }
 

@@ -1,6 +1,6 @@
 import { describe, expect, it } from "bun:test";
 import { spawnSync } from "node:child_process";
-import { mkdtempSync, rmSync, writeFileSync } from "node:fs";
+import { mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import {
@@ -11,6 +11,7 @@ import {
   orderStack,
   parseFastCheck,
   parsePullRequest,
+  parseRequiredChecks,
   parseReviewThreadPage,
   resolveChecks,
   resolveContext,
@@ -495,4 +496,113 @@ printf '%s\\n' '[{"number":42,"headRefName":"feature","baseRefName":"main","isCr
     }
   });
 
+});
+
+describe("required checks", () => {
+  const rules: unknown = JSON.parse(
+    readFileSync(join(import.meta.dir, "fixtures", "dots-894", "rules-main.json"), "utf8")
+  );
+  const contextsOf = (required: ReturnType<typeof parseRequiredChecks>) =>
+    required.kind === "declared" ? [...required.contexts].sort() : required.kind;
+
+  it("reads every required_status_checks ruleset that applies to the branch", () => {
+    expect(contextsOf(parseRequiredChecks({ rules: { kind: "present", json: rules }, classic: { kind: "absent" } }))).toEqual([
+      "gitea-mq",
+      "nixbot/nix-build",
+      "nixbot/nix-eval",
+    ]);
+  });
+
+  it("unions rulesets with classic protection contexts and checks", () => {
+    expect(
+      contextsOf(
+        parseRequiredChecks({
+          rules: { kind: "present", json: rules },
+          classic: {
+            kind: "present",
+            json: {
+              strict: false,
+              contexts: ["legacy"],
+              checks: [
+                { context: "legacy", app_id: null },
+                { context: "app-check", app_id: 15368 },
+              ],
+            },
+          },
+        })
+      )
+    ).toEqual(["app-check", "gitea-mq", "legacy", "nixbot/nix-build", "nixbot/nix-eval"]);
+  });
+
+  it("is undeclared when no rule names a status check", () => {
+    expect(
+      parseRequiredChecks({
+        rules: {
+          kind: "present",
+          json: [{ type: "deletion", ruleset_source_type: "Repository", ruleset_id: 1 }],
+        },
+        classic: { kind: "absent" },
+      })
+    ).toEqual({ kind: "undeclared" });
+    expect(parseRequiredChecks({ rules: { kind: "absent" }, classic: { kind: "absent" } })).toEqual({ kind: "undeclared" });
+  });
+
+  it("reads both sources through gh, treats 404 as none, and reads each branch once", () => {
+    const directory = mkdtempSync(join(tmpdir(), "watch-pr-required-"));
+    try {
+      writeFileSync(join(directory, "gh"), `#!/bin/sh
+echo "$*" >> "$WATCH_PR_LOG"
+case "$*" in
+  "api repos/mulatta/dots/rules/branches/main") cat "$WATCH_PR_RULES" ;;
+  "api repos/mulatta/dots/rules/branches/gone") echo '{"message":"Not Found","status":"404"}'; echo "gh: Not Found (HTTP 404)" >&2; exit 1 ;;
+  "api repos/mulatta/dots/rules/branches/"*) echo '[]' ;;
+  "api repos/mulatta/dots/branches/classic/protection/required_status_checks")
+    echo '{"strict":false,"contexts":["legacy"],"checks":[{"context":"legacy","app_id":null}]}' ;;
+  "api repos/mulatta/dots/branches/forbidden/protection/required_status_checks")
+    echo '{"message":"Resource not accessible by integration","status":"403"}'; echo "gh: Resource not accessible by integration (HTTP 403)" >&2; exit 1 ;;
+  "api repos/mulatta/dots/branches/"*"/protection/required_status_checks")
+    echo '{"message":"Branch not protected","status":"404"}'; echo "gh: Branch not protected (HTTP 404)" >&2; exit 1 ;;
+  *) echo "unexpected gh $*" >&2; exit 99 ;;
+esac
+`, { mode: 0o755 });
+      const program = `import { GhGitHubReader, WatcherQueryError } from ${JSON.stringify(import.meta.dir + "/github.ts")};
+        const reader = new GhGitHubReader();
+        const repository = { owner: "mulatta", repo: "dots" };
+        const out = {};
+        for (const base of ["main", "unprotected", "gone", "classic", "main"]) {
+          const required = await reader.requiredChecks({ repository, base });
+          out[base] = required.kind === "declared" ? [...required.contexts].sort() : required.kind;
+        }
+        try {
+          await reader.requiredChecks({ repository, base: "forbidden" });
+          out.forbidden = "resolved";
+        } catch (error) {
+          out.forbidden = error instanceof WatcherQueryError ? error.failure.kind : String(error);
+        }
+        console.log(JSON.stringify(out));`;
+      const log = join(directory, "log");
+      const child = spawnSync(process.execPath, ["-e", program], {
+        encoding: "utf8", timeout: 5000,
+        env: {
+          ...process.env,
+          PATH: directory + ":" + process.env.PATH,
+          WATCH_PR_LOG: log,
+          WATCH_PR_RULES: join(import.meta.dir, "fixtures", "dots-894", "rules-main.json"),
+        },
+      });
+      expect(child.error).toBeUndefined();
+      expect(child.status).toBe(0);
+      expect(JSON.parse(child.stdout)).toEqual({
+        main: ["gitea-mq", "nixbot/nix-build", "nixbot/nix-eval"],
+        unprotected: "undeclared",
+        gone: "undeclared",
+        classic: ["legacy"],
+        forbidden: "command-exit",
+      });
+      const reads = readFileSync(log, "utf8").trim().split("\n");
+      expect(reads.filter((line) => line.includes("/main"))).toHaveLength(2);
+    } finally {
+      rmSync(directory, { recursive: true, force: true });
+    }
+  });
 });

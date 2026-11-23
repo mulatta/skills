@@ -27,6 +27,7 @@ const cleanCi = {
       workflow: "",
     },
   ],
+  nonGating: [],
   failed: [],
   pending: [],
   hadPreviousPassingCi: false,
