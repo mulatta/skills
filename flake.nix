@@ -76,6 +76,7 @@
             nativeBuildInputs = [
               pkgs.bun
               pkgs.git
+              pkgs.unzip
             ];
           }
           ''
